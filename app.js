@@ -48,7 +48,7 @@ app.use('/survey',surveyRoutes);
 app.use('/routine',routineRoutes);
 
 app.get('*',(req,res)=>{
-    res.sendFile(path.join(__dirname,'app.js'));
+    res.sendFile(path.join(__dirname,'public/index.html'));
 });
 
 // app.use((req,res,next)=>{
