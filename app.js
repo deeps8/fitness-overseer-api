@@ -47,11 +47,15 @@ app.use('/user',userRoutes);
 app.use('/survey',surveyRoutes);
 app.use('/routine',routineRoutes);
 
-app.use((req,res,next)=>{
-    return res.json({
-        message:"Not found in routes"
-    })
+app.get('*',(req,res)=>{
+    res.sendFile(path.join(__dirname,'app.js'));
 });
+
+// app.use((req,res,next)=>{
+//     return res.json({
+//         message:"Not found in routes"
+//     })
+// });
 
 app.use((err,req,res,next)=>{
     res.status(err.status || 500);
