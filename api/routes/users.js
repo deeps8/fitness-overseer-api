@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
+const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
 const checkAuth = require('../middleware/check-auth');
 const User = require('../models/user');
@@ -40,13 +40,7 @@ router.post('/login',(req,res,next)=>{
                 });
             }
 
-            bcrypt.compare(req.body.password,user.password,(err,result)=>{
-                if(err){
-                    return res.json({
-                        message: 'Authentication Failed'
-                    });
-                }
-                if(result){
+                if(argon2.verify(user.password, req.body.password)){
                     const token = jwt.sign({
                         email: user.email,
                         username: user.username,
@@ -67,11 +61,11 @@ router.post('/login',(req,res,next)=>{
                                 member: user.member
                         }
                     });
+                }else{
+                    return res.json({
+                        message:'Authentication Failed'
+                    }); 
                 }
-                res.json({
-                    message: 'Authentication Failed'
-                    });
-                });
         })
         .catch(err=>{
             //console.log(err);
@@ -114,37 +108,37 @@ router.post('/signup',(req,res,next)=>{
                         });
                     }
                     else{
-                        bcrypt.hash(req.body.password,10,(err,hash)=>{
-                            if(err){
-                                return res.json({
-                                    error: err
-                                });
-                            }
-                            else{
 
-                                const user = new User({
-                                    _id: new mongoose.Types.ObjectId(),
-                                    userid: new mongoose.Types.ObjectId(),
-                                    email: req.body.email,
-                                    username: req.body.username,
-                                    name: req.body.name,
-                                    member:req.body.member,
-                                    password: hash,
+                        try {
+                            const hash =  argon2.hash(req.body.password);
+                            const user = new User({
+                                _id: new mongoose.Types.ObjectId(),
+                                userid: new mongoose.Types.ObjectId(),
+                                email: req.body.email,
+                                username: req.body.username,
+                                name: req.body.name,
+                                member:req.body.member,
+                                password: hash,
+                                });
+                            user.save()
+                                .then(result=>{
+                                    //console.log(result);
+                                    res.json({
+                                        message: 'Account Created'
                                     });
-                                user.save()
-                                    .then(result=>{
-                                        //console.log(result);
-                                        res.json({
-                                            message: 'Account Created'
-                                        });
-                                    })
-                                    .catch(err =>{
-                                        res.json({
-                                            error: err
-                                        });
-                                    });    
-                            }
-                        });
+                                })
+                                .catch(err =>{
+                                    res.json({
+                                        error: err
+                                    });
+                                });
+
+                          } 
+                          catch (err) {
+                            return res.json({
+                                error: err
+                            });
+                          }
                     }
                 });
             }
@@ -153,7 +147,7 @@ router.post('/signup',(req,res,next)=>{
 });
 
 
-//Fetching a user data 
+// //Fetching a user data 
 router.get('/getauser',checkAuth,(req,res,next)=>{
     User.findOne( {userid: req.UserData.userid}).exec()
         .then(result=>{
