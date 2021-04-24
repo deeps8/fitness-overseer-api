@@ -1,0 +1,11 @@
+---
+application:
+  name: "fitness-overseer-api"
+  project: "fitness-app"
+  organization: "QoveryCommunity"
+routers:
+- name: "main-fitness-overseer-api"
+  routes:
+  - application_name: "fitness-overseer-api"
+    paths:
+    - "/*"
